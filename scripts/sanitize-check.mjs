@@ -22,6 +22,20 @@ const scanRoots = [
   { dir: path.join(root, 'deck'), extensions: ['.mjs', '.js', '.css', '.md'] },
 ];
 
+/**
+ * 豁免清单 —— 经作者确认需要按原文公开的对外文档。
+ * 简历是主动投递的对外材料：雇主名称、内部产品名、个人经历本来就随简历对外。
+ * 豁免不等于不检查：命中仍然打印告警，让"哪些内部标识被公开了"始终可见，只是不拦构建。
+ */
+const EXEMPT = [
+  { path: 'src/pages/resume.astro', reason: '简历页：个人经历与履历中的系统名按本人决定原样公开（见 RESUME.md）' },
+];
+
+function exemptionFor(filePath) {
+  const rel = path.relative(root, filePath).replace(/\\/g, '/');
+  return EXEMPT.find((item) => item.path === rel);
+}
+
 /** 从词表中取出 2.1 精确词（``` 代码块）与 2.2 正则模式（表格首列）。 */
 function parseGlossary(text) {
   // 注意：不能用 '---' 做分隔——markdown 表格分隔行 |---|---| 里也含 '---'
@@ -120,6 +134,8 @@ if (patterns.length === 0) {
 
 const files = await collectFiles();
 const reports = [];
+const warnings = [];
+let exemptCount = 0;
 
 for (const file of files) {
   const text = await readFile(file, 'utf8');
@@ -130,12 +146,26 @@ for (const file of files) {
     .sort((a, b) => a.index - b.index)
     .map((hit) => `    第 ${lineOf(text, hit.index)} 行  命中「${hit.token}」`);
 
-  reports.push(`  ${path.relative(root, file)}\n${lines.join('\n')}`);
+  const exempt = exemptionFor(file);
+  const body = `  ${path.relative(root, file)}${exempt ? `（已豁免：${exempt.reason}）` : ''}\n${lines.join('\n')}`;
+
+  if (exempt) {
+    exemptCount += 1;
+    warnings.push(body);
+  } else {
+    reports.push(body);
+  }
 }
 
 console.log(
-  `[sanitize] 扫描 ${files.length} 个文件 · 精确词 ${exact.length} 条 · 正则 ${patterns.length} 条`,
+  `[sanitize] 扫描 ${files.length} 个文件 · 精确词 ${exact.length} 条 · 正则 ${patterns.length} 条 · 豁免 ${exemptCount} 个`,
 );
+
+if (warnings.length > 0) {
+  console.warn(
+    `\n[sanitize] WARN 已豁免文件命中禁出词（不拦构建，但请确认这些都是可公开信息）：\n\n${warnings.join('\n\n')}\n`,
+  );
+}
 
 if (reports.length > 0) {
   console.error(`\n[sanitize] FAIL 命中禁出词，构建中止：\n\n${reports.join('\n\n')}\n`);

@@ -1,15 +1,9 @@
 ---
-import { existsSync } from 'node:fs';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Prose from '../components/Prose.astro';
 import Mermaid from '../components/Mermaid.astro';
 import { withBase } from '../utils/base';
-import { projectPath } from '../utils/paths.mjs';
 import { SITE } from '../site.config';
-
-// 对外脱敏版简历（public/resume/resume.pdf）。存在才出下载入口，
-// 否则降级为"邮件索取"——简历没到位时站点依然可用，且不出现死链。
-const hasResume = existsSync(projectPath('public', 'resume', 'resume.pdf'));
 ---
 
 <BaseLayout title="关于" description={`关于 ${SITE.author}`}>
@@ -36,25 +30,12 @@ const hasResume = existsSync(projectPath('public', 'resume', 'resume.pdf'));
 
   <Prose>
     <h2 id="resume">简历</h2>
-    {
-      hasResume ? (
-        <ul>
-          <li>
-            <a href={withBase('/resume/resume.pdf')} download>
-              下载简历（PDF）
-            </a>
-          </li>
-          <li>对外版已去除手机号等隐私字段；联系方式以上一节邮箱为准</li>
-        </ul>
-      ) : (
-        <ul>
-          <li>
-            完整简历可邮件索取：<a href={`mailto:${SITE.email}`}>{SITE.email}</a>
-          </li>
-          <li>站点内容本身也可作为简历：项目页与文章记录了做法与取舍</li>
-        </ul>
-      )
-    }
+    <ul>
+      <li>
+        <a href={withBase('/resume')}>简历页</a>（可直接阅读，也可用浏览器打印成 PDF）
+      </li>
+      <li>站点本身也是一份简历：项目页讲做法与取舍，文章讲踩过的坑与判断依据</li>
+    </ul>
 
     <h2>联系</h2>
     <ul>

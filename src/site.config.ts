@@ -12,6 +12,6 @@ export const SITE = {
   nav: [
     { label: '首页', href: '/' },
     { label: '关于', href: '/about' },
-    { label: '简历', href: '/about#resume' },
+    { label: '简历', href: '/resume' },
   ],
 } as const;
