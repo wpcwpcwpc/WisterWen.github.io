@@ -29,7 +29,7 @@ const projects = defineCollection({
   }),
 });
 
-// 文章集合：/posts/<id> 为文章路径。
+// 文章集合：/posts/<id> 为文章路径；属于专栏的文章额外承载章节元数据，详情页改走 /claudecode/<id>。
 const posts = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
   schema: z.object({
@@ -39,6 +39,16 @@ const posts = defineCollection({
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
     updated: z.coerce.date().optional(),
+    /** 专栏 id：取值必须在 src/series.ts 登记（由 scripts/check-series.mjs 强制） */
+    series: z.string().optional(),
+    /** 专栏内章节序号：决定专区页顺序，同一专栏内唯一 */
+    seriesOrder: z.number().optional(),
+    /** 专栏内的分区名：必须命中专栏登记表的分区（由 scripts/check-series.mjs 强制） */
+    seriesGroup: z.string().optional(),
+    /** 阅读时长（分钟），供专区页展示 */
+    readingMinutes: z.number().optional(),
+    /** 重要程度（1–3 星），供专区页展示 */
+    weight: z.number().optional(),
   }),
 });
 

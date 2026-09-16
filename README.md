@@ -22,9 +22,11 @@ npm run dev          # 本地预览 http://localhost:4321
 |---|---|
 | `npm run dev` | 本地开发预览 |
 | `npm run sanitize` | 只跑脱敏扫描（可单独用） |
+| `npm run series` | 专栏校验：章节的专栏/分区/序号与 `src/series.ts` 一致 |
+| `npm run import:series` | 外部长文导入为专栏章节（`-- --src <目录> [--skip-internal]`，详见 `SERIES.md`） |
 | `npm run diagrams` | `diagrams/*.mmd` → `src/assets/diagrams/*.svg` |
 | `npm run og` | 生成 OG 分享图 `public/og/default.png` |
-| `npm run build` | 脱敏扫描 → 口径校验 → PDF 审计 → 图表 → OG → 静态构建（一条命令，任一步失败即中止） |
+| `npm run build` | 脱敏 → 口径 → 专栏 → PDF 审计 → 图表 → deck → OG → 静态构建（任一步失败即中止） |
 | `npm run diagrams` | `diagrams/*.mmd` → `src/assets/diagrams/*.svg`（站内与 deck 共用同一批产物） |
 | `npm run deck` | `deck/*` + 图表产物 → `public/deck/qa-agent/index.html`（自包含单文件，失败只告警） |
 | `npm run pdf` | 用本机 Chromium 把项目页打印为 PDF（兜底产物，失败不阻塞） |
@@ -40,11 +42,12 @@ npm run dev          # 本地预览 http://localhost:4321
 src/
   content/
     projects/*.md      项目页（/projects/<文件名>）
-    posts/*.md         文章（/posts/<文件名>）
+    posts/*.md         文章（/posts/<文件名>）；专栏章节也在其中，命名 claudecode-<NN>-<english>
   content.config.ts    内容集合与 frontmatter 校验
-  layouts/             站点骨架、项目页、文章页布局
+  series.ts            专栏登记表（标题 / 描述 / 分区顺序的唯一真源）
+  layouts/             站点骨架、项目页、文章页、专栏章节页布局
   components/          Prose（长文排版）、Mermaid（图表）、ShotPlaceholder（截图占位）
-  pages/               首页、关于、详情页、404、robots
+  pages/               首页、关于、文章列表、文章/章节详情、项目页、404、robots
   plugins/             rehype-diagram：把 ![x](diagram:名) 就地换成内联 SVG
   styles/              theme.css（设计令牌）、typography.css（排版规范）
   site.config.ts       站点名 / 定位 / 联系方式 / 导航（发布前替换 TODO）
@@ -52,8 +55,8 @@ src/
 diagrams/*.mmd         图表唯一真源（见 diagrams/README.md）
 deck/                  扫读版 deck 源（slides.mjs 内容 + theme.css 样式 + nav.js 翻页）
 assets/og/default.svg  OG 图源
-scripts/               构建流水线脚本（脱敏 / 口径 / PDF 审计 / 图表 / deck / OG / PDF / 链接 / 手机核对）
-public/                favicon、OG 产物、PDF 产物、deck 产物
+scripts/               构建流水线脚本（脱敏 / 口径 / 专栏 / PDF 审计 / 图表 / deck / OG / PDF / 链接 / 手机核对 / 专栏导入）
+public/                favicon、OG 产物、PDF 产物、deck 产物、简历 PDF
 ```
 
 ## URL 契约（勿改）
@@ -63,7 +66,10 @@ public/                favicon、OG 产物、PDF 产物、deck 产物
 | `/` | 首页 | 稳定 |
 | `/about` | 关于 | 稳定 |
 | `/projects/<slug>` | 项目页——**对外引用（简历等）指向此处** | **永不变更** |
-| `/posts/<slug>` | 文章 | 发布后不变更 |
+| `/posts/<slug>` | 单篇文章（不含专栏章节） | 发布后不变更 |
+| `/posts` | 文章列表（专栏卡片 + 单篇分页） | 稳定 |
+| `/claudecode` | 专栏《Claude Code CLI 源码解析》目录 | 稳定 |
+| `/claudecode/<NN>-<english>` | 专栏章节——slug 即 URL 契约，发布后不变更（见 `SERIES.md`） | 发布后不变更 |
 | `/deck/<slug>` | 概览 deck（子项目，可为空） | 稳定 |
 
 新增项目只追加 `/projects/<新slug>`；域名锚"人"、路径锚"项目"，对外链接不因新增内容失效。
@@ -97,6 +103,10 @@ tags: [标签]
 
 `draft: true` 的内容不会进入构建产物。文件名即 URL slug。
 
+**专栏章节**（`src/content/posts/claudecode-<NN>-<english>.md`）由 `npm run import:series` 生成，
+frontmatter 另带 `series` / `seriesOrder` / `seriesGroup`（必须命中 `src/series.ts` 的分区）与
+`readingMinutes` / `weight`。这三项由 `npm run series` 校验，**不要手改章节产物**（下次导入覆盖）。
+
 **配图**：在 Markdown 里直接按名引用图源，构建期内联为 SVG（不依赖前端 JS）：
 
 ```markdown
@@ -120,7 +130,7 @@ tags: [标签]
 - `npm run pdf-audit` 把 `public/` 下的 PDF 抽成文本再跑同一套词表（PDF 是文本闸门扫不到的盲区），
   并叠加 PII 模式（手机号 / 身份证 / 固话）
 - 发布前按 `RELEASE-CHECKLIST.md` 逐条自检，终审结论记入该文件
-- 截图占位状态在 `SHOTS.md` 跟踪；简历上站清单在 `RESUME.md`
+- 截图占位状态在 `SHOTS.md` 跟踪；简历上站清单在 `RESUME.md`；专栏导入边界与维护在 `SERIES.md`
 
 ## 部署
 

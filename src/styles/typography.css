@@ -58,6 +58,15 @@ a:hover {
   border-radius: var(--radius-sm);
 }
 
+/* 兜底：ASCII 图或超长串落在正文里时不撑破窄屏（正确写法是放进代码块，代码块自带横向滚动） */
+p,
+li,
+td,
+th,
+blockquote {
+  overflow-wrap: break-word;
+}
+
 /* 代码块：仅用于架构示意，可视高度按 15 行封顶，超出滚动而非撑长页面 */
 pre {
   background: var(--color-surface);
@@ -74,6 +83,13 @@ pre {
 code {
   font-family: var(--font-mono);
   font-size: 0.94em;
+  /* 长标识符与长 URL 允许断行：否则窄屏会被一个词撑出横向滚动 */
+  overflow-wrap: anywhere;
+}
+
+/* 长链接同理（源码解析类长文里常见指向具体文件/接口的路径） */
+a {
+  overflow-wrap: anywhere;
 }
 
 :not(pre) > code {

@@ -120,7 +120,14 @@ const { result } = await send(
       scrollWidth: document.documentElement.scrollWidth,
       offenders: [...document.querySelectorAll('body *')]
         .filter((el) => el.getBoundingClientRect().right > window.innerWidth + 1)
-        .filter((el) => !el.closest('[style*="overflow"], .fig, .diagram'))
+        /* 自带宽滚动容器的内容（代码块、表格、图表）属正常：它自己滚，不撑页面 */
+        .filter((el) => {
+          for (let node = el; node; node = node.parentElement) {
+            const overflowX = getComputedStyle(node).overflowX;
+            if (overflowX === 'auto' || overflowX === 'scroll' || overflowX === 'hidden') return false;
+          }
+          return true;
+        })
         .map((el) => el.tagName + (el.className && typeof el.className === 'string' ? '.' + el.className.slice(0, 30) : ''))
         .slice(0, 8),
       title: document.title.slice(0, 50),

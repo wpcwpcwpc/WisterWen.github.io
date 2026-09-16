@@ -1,11 +1,15 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
-import type { PostEntry } from '../../utils/content';
+import { listStandalonePosts } from '../../utils/content';
 
+/**
+ * 单篇文章页：/posts/<slug>。
+ * 专栏章节不走这里（它们只在 /claudecode/<slug> 出页），避免同一内容两个 URL。
+ */
 export async function getStaticPaths() {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
-  return posts.map((entry: PostEntry) => ({
+  const posts = await listStandalonePosts();
+  return posts.map((entry) => ({
     params: { slug: entry.id },
     props: { entry },
   }));

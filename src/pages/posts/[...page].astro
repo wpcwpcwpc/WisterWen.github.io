@@ -1,54 +1,40 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../site.config';
-import { withBase } from '../utils/base';
-import { listProjects, listSeriesBundles, listStandalonePosts } from '../utils/content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../utils/base';
+import { listSeriesBundles, listStandalonePosts } from '../../utils/content';
 
-const projects = await listProjects();
-const featured = projects.filter((p) => p.data.featured);
-const rest = projects.filter((p) => !p.data.featured);
+/**
+ * 文章列表页：/posts（第 1 页）与 /posts/<n>（后续页）。
+ * 分两区：专栏出卡片（内容成体系，进专区页读），单篇出列表（按发布时间倒序分页）。
+ * 全站"专栏 / 单篇"的划分只由 utils/content 决定，此处不重复筛选逻辑。
+ */
+export async function getStaticPaths({ paginate }) {
+  const posts = await listStandalonePosts();
+  return paginate(posts, { pageSize: 10 });
+}
 
-// 首页是门面不是索引：专栏只出入口卡片，单篇只出最近几篇，全量在 /posts
+const { page } = Astro.props;
 const series = await listSeriesBundles();
-const recentPosts = (await listStandalonePosts()).slice(0, 5);
 ---
 
-<BaseLayout>
-  <section class="hero shell">
-    <h1>{SITE.name}</h1>
-    <p class="hero__tagline">{SITE.tagline}</p>
-  </section>
-
-  <section class="section shell">
-    <h2>精选项目</h2>
-    {
-      featured.length > 0 ? (
-        <ul class="cards">
-          {featured.map((project) => (
-            <li class="card">
-              <a href={withBase(`/projects/${project.id}`)}>
-                <h3>{project.data.title}</h3>
-                <p class="card__tagline">{project.data.tagline}</p>
-                <p class="card__summary">{project.data.summary}</p>
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p class="empty">暂无精选项目。</p>
-      )
-    }
+<BaseLayout title="文章" description="专栏与单篇技术文章。">
+  <section class="head shell">
+    <h1>文章</h1>
+    <p class="head__desc">成体系的读专栏，单点经验读单篇。</p>
   </section>
 
   {
-    rest.length > 0 && (
+    series.length > 0 && (
       <section class="section shell">
-        <h2>其他项目</h2>
-        <ul class="plain">
-          {rest.map((project) => (
-            <li>
-              <a href={withBase(`/projects/${project.id}`)}>{project.data.title}</a>
-              <span class="plain__desc">{project.data.tagline}</span>
+        <h2>专栏</h2>
+        <ul class="cards">
+          {series.map((bundle) => (
+            <li class="card">
+              <a href={withBase('/claudecode')}>
+                <h3>{bundle.series.title}</h3>
+                <p class="card__tagline">共 {bundle.chapters.length} 章 · 按章节顺序阅读</p>
+                <p class="card__summary">{bundle.series.description}</p>
+              </a>
             </li>
           ))}
         </ul>
@@ -57,28 +43,11 @@ const recentPosts = (await listStandalonePosts()).slice(0, 5);
   }
 
   <section class="section shell">
-    <h2>文章</h2>
+    <h2>单篇</h2>
     {
-      series.length > 0 && (
-        <ul class="cards">
-          {series.map((bundle) => (
-            <li class="card">
-              <a href={withBase('/claudecode')}>
-                <h3>{bundle.series.title}</h3>
-                <p class="card__tagline">
-                  共 {bundle.chapters.length} 章 · {bundle.groups.map((group) => group.name).join(' / ')}
-                </p>
-                <p class="card__summary">{bundle.series.description}</p>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )
-    }
-    {
-      recentPosts.length > 0 ? (
+      page.data.length > 0 ? (
         <ul class="plain">
-          {recentPosts.map((post) => (
+          {page.data.map((post) => (
             <li>
               <a href={withBase(`/posts/${post.id}`)}>{post.data.title}</a>
               <span class="plain__desc">{post.data.summary}</span>
@@ -92,9 +61,17 @@ const recentPosts = (await listStandalonePosts()).slice(0, 5);
         <p class="empty">暂无文章。</p>
       )
     }
-    <p class="more">
-      <a href={withBase('/posts')}>全部文章 →</a>
-    </p>
+    {
+      page.lastPage > 1 && (
+        <nav class="pager">
+          {page.url.prev ? <a href={page.url.prev}>← 上一页</a> : <span />}
+          <span class="pager__pos">
+            第 {page.currentPage} / {page.lastPage} 页
+          </span>
+          {page.url.next ? <a href={page.url.next}>下一页 →</a> : <span />}
+        </nav>
+      )
+    }
   </section>
 </BaseLayout>
 
@@ -105,21 +82,18 @@ const recentPosts = (await listStandalonePosts()).slice(0, 5);
     padding-inline: var(--space-4);
   }
 
-  .hero {
+  .head {
     padding-block: var(--space-5) var(--space-4);
   }
 
-  .hero h1 {
+  .head h1 {
     margin: 0;
-    font-size: clamp(28px, 3.4vw + 14px, 44px);
+    font-size: clamp(26px, 3vw + 14px, 40px);
     line-height: 1.2;
-    letter-spacing: -0.01em;
   }
 
-  .hero__tagline {
+  .head__desc {
     margin: var(--space-3) 0 0;
-    max-width: var(--measure);
-    font-size: var(--text-base);
     color: var(--color-text-muted);
   }
 
@@ -131,7 +105,6 @@ const recentPosts = (await listStandalonePosts()).slice(0, 5);
   .section h2 {
     margin: 0 0 var(--space-4);
     font-size: var(--text-sm);
-    text-transform: none;
     color: var(--color-text-muted);
     font-weight: 600;
   }
@@ -188,16 +161,6 @@ const recentPosts = (await listStandalonePosts()).slice(0, 5);
     padding: 0;
   }
 
-  /* 专栏卡片与单篇列表之间的呼吸感 */
-  .cards + .plain {
-    margin-top: var(--space-4);
-  }
-
-  .more {
-    margin: var(--space-4) 0 0;
-    font-size: var(--text-xs);
-  }
-
   .plain li {
     display: flex;
     flex-wrap: wrap;
@@ -220,6 +183,19 @@ const recentPosts = (await listStandalonePosts()).slice(0, 5);
 
   .empty {
     font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  .pager {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+    justify-content: space-between;
+    margin-top: var(--space-4);
+    font-size: var(--text-xs);
+  }
+
+  .pager__pos {
     color: var(--color-text-faint);
   }
 </style>
