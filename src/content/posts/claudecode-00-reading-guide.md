@@ -364,7 +364,7 @@ sourceSha256: 2059958e7f34
 ### 工具与能力扩展篇
 - [06-工具系统架构](/claudecode/06-tool-system) ⭐
 - [07-核心工具实现](/claudecode/07-core-tools)
-- [08-模型上下文协议(MCP)深度集成](./08-模型上下文协议(MCP)深度集成.md)
+- [08-模型上下文协议(MCP)深度集成](/claudecode/08-mcp-integration)
 
 ### Agent 核心系统篇（本次重构重点）
 - [09-Agent系统架构](/claudecode/09-agent-system) ⭐ **新增**

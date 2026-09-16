@@ -154,6 +154,7 @@ function redact(text) {
 /** 章节互链改写：`./NN-xxx.md` → `/claudecode/<NN>-<slug>`；解不出的引用降级为纯文本 */
 function rewriteLinks(text) {
   const unresolved = [];
+  const leftovers = [];
   const lines = text.split('\n');
   let inFence = false;
 
@@ -164,19 +165,30 @@ function rewriteLinks(text) {
     }
     if (inFence) return line; // 代码块里出现的是"文件名示例"或命令行，不动
 
-    return line.replace(/\[([^\]]+)\]\(([^)\s]+)(\s+"[^"]*")?\)/g, (whole, label, target, title = '') => {
-      const [filepart, anchor] = target.split('#');
-      const order = Number(filepart.match(/(?:^\.?\/?)(\d\d)-[^/]*\.md$/)?.[1] ?? NaN);
-      if (!Number.isFinite(order)) return whole;
-      if (!byOrder.has(order)) {
-        unresolved.push({ label, target });
-        return label; // 指向已归档/不在册的文档：只留文字
-      }
-      return `[${label}](${urlOf(order)}${anchor ? `#${anchor}` : ''}${title})`;
-    });
+
+    /* 目标里可能带括号（如 `./08-模型上下文协议(MCP)深度集成.md`），所以不能简单用 [^)]+ */
+    return line.replace(
+      /\[([^\]]+)\]\(([^()\s]*(?:\([^()]*\)[^()\s]*)*)(\s+"[^"]*")?\)/g,
+      (whole, label, target, title = '') => {
+        const [filepart, anchor] = target.split('#');
+        const order = Number(filepart.match(/(?:^\.?\/?)(\d\d)-[^/]*\.md$/)?.[1] ?? NaN);
+        if (!Number.isFinite(order)) return whole;
+        if (!byOrder.has(order)) {
+          unresolved.push({ label, target });
+          return label; // 指向已归档/不在册的文档：只留文字
+        }
+        return `[${label}](${urlOf(order)}${anchor ? `#${anchor}` : ''}${title})`;
+      },
+    );
   });
 
-  return { text: rewritten.join('\n'), unresolved };
+  // 改写完成后再扫一遍残留的相对文档引用：相对链接连链接检查都不管，会静默变线上死链
+  const joined = rewritten.join('\n');
+  for (const match of joined.matchAll(/\]\(((?:\.\/)?\d\d-[^)\s]*\.md[^)\s]*)\)/g)) {
+    leftovers.push(match[1]);
+  }
+
+  return { text: joined, unresolved, leftovers };
 }
 
 // ── 校验源目录 ──────────────────────────────────────────────────────────
@@ -229,6 +241,7 @@ if (absent.length > 0) {
 
 const redactionCounts = new Map();
 const unresolvedAll = [];
+const leftoversAll = [];
 const fenceOdd = [];
 let written = 0;
 
@@ -251,8 +264,9 @@ for (const chapter of CHAPTERS) {
     redactionCounts.set(label, (redactionCounts.get(label) ?? 0) + count);
   }
 
-  const { text: body, unresolved } = rewriteLinks(redacted);
+  const { text: body, unresolved, leftovers } = rewriteLinks(redacted);
   for (const item of unresolved) unresolvedAll.push({ chapter: pad(chapter.order), ...item });
+  for (const item of leftovers) leftoversAll.push({ chapter: pad(chapter.order), target: item });
 
   // 围栏配对自检：源文档少一个开 ``` 会让紧随其后的正文被当成代码块渲染
   const fenceLines = body
@@ -298,6 +312,11 @@ console.log(
 if (unresolvedAll.length > 0) {
   console.log(`[import] 未解析的章节引用 ${unresolvedAll.length} 处（已降级为纯文本，不进链接）：`);
   for (const item of unresolvedAll) console.log(`  第 ${item.chapter} 章  「${item.label}」→ ${item.target}`);
+}
+
+if (leftoversAll.length > 0) {
+  console.log(`[import] WARN 仍有 ${leftoversAll.length} 处相对文档引用没改写（相对链接进不了链接检查，会变线上死链）：`);
+  for (const item of leftoversAll) console.log(`  第 ${item.chapter} 章  ${item.target}`);
 }
 
 if (fenceOdd.length > 0) {

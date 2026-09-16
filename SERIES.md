@@ -17,6 +17,9 @@
 
 章节**不在** `/posts/<id>` 出页（避免同一内容两个 URL），也不出现在 `posts` 的单篇列表里。
 
+章节正文里的站内互链写成根路径（`/claudecode/03-query-engine`）即可：构建期由
+`src/plugins/rehype-base-links.mjs` 按 `BASE_PATH` 补前缀，换托管/绑域名都不用改内容。
+
 ## 二、导入怎么做
 
 ```bash

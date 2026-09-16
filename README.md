@@ -48,7 +48,8 @@ src/
   layouts/             站点骨架、项目页、文章页、专栏章节页布局
   components/          Prose（长文排版）、Mermaid（图表）、ShotPlaceholder（截图占位）
   pages/               首页、关于、文章列表、文章/章节详情、项目页、404、robots
-  plugins/             rehype-diagram：把 ![x](diagram:名) 就地换成内联 SVG
+  plugins/             rehype-diagram：把 ![x](diagram:名) 就地换成内联 SVG；
+                       rehype-base-links：给内容里的站内绝对链接补托管前缀（子路径托管不 404）
   styles/              theme.css（设计令牌）、typography.css（排版规范）
   site.config.ts       站点名 / 定位 / 联系方式 / 导航（发布前替换 TODO）
   utils/               路径解析、URL 前缀、内容查询、图表加载

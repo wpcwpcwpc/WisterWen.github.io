@@ -1080,4 +1080,4 @@ getActivityDescription(input) {
 
 接下来，我们将探索 MCP（模型上下文协议）集成，了解 Claude Code 如何扩展其工具集：
 
-👉 **继续阅读**：[08-模型上下文协议(MCP)深度集成.md](./08-模型上下文协议(MCP)深度集成.md)
+👉 **继续阅读**：[08-模型上下文协议(MCP)深度集成.md](/claudecode/08-mcp-integration)

@@ -1422,7 +1422,7 @@ mcpServers:
 
 - 📖 [03-QueryEngine深度解析](/claudecode/03-query-engine) - 理解Query Loop
 - 📖 [06-工具系统架构](/claudecode/06-tool-system) - 理解工具机制
-- 📖 [08-模型上下文协议(MCP)深度集成](./08-模型上下文协议(MCP)深度集成.md) - MCP与Agent的集成
+- 📖 [08-模型上下文协议(MCP)深度集成](/claudecode/08-mcp-integration) - MCP与Agent的集成
 
 ---
 
