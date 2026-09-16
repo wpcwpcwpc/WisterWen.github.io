@@ -28,7 +28,7 @@ const scanRoots = [
  * 豁免不等于不检查：命中仍然打印告警，让"哪些内部标识被公开了"始终可见，只是不拦构建。
  */
 const EXEMPT = [
-  { path: 'src/pages/resume.astro', reason: '简历页：个人经历与履历中的系统名按本人决定原样公开（见 RESUME.md）' },
+  { path: 'src/pages/resume.astro', reason: '简历页：当前仅承载 PDF 容器，无履历文本；保留豁免以防文本回归（见 RESUME.md）' },
 ];
 
 function exemptionFor(filePath) {

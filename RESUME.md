@@ -10,12 +10,23 @@
 
 | 形态 | 位置 | 说明 |
 |---|---|---|
-| **简历页（主）** | `/resume` | 网页文本：手机可读、可选中、可用浏览器直接打印成 PDF |
-| PDF（次） | `public/resume/resume.pdf` | 存在时才显示"下载 PDF 版"入口，作留档与邮件附件 |
+| **简历页** | `/resume` | 整页渲染 `resume.pdf`（pdf.js 逐页画进 canvas），无站点导航与页脚，纯净阅读 |
+| PDF 原件 | `public/resume/resume.pdf` | 唯一内容源；页面直接引用它，不做二次排版 |
 
-- 改简历内容 = 改 `src/pages/resume.astro`
-- 换 PDF = 覆盖 `public/resume/resume.pdf` 并 push
+- 改简历内容 = 换掉 `public/resume/resume.pdf` 并 push（页面上不写死任何履历文本）
 - 顶部导航「简历」直达 `/resume`
+- PDF 缺失时页面只显示一句「简历文件暂不可用」，不报错
+
+渲染实现要点（`src/pages/resume.astro`）：
+
+- 用 **pdf.js**（`pdfjs-dist` 的 legacy 构建 + 独立 worker）逐页渲染成 canvas，
+  移动端不内联 PDF 的内核（iOS Safari 等）也能直接翻页；页面按可视区懒渲染，窗口缩放后按新像素重画
+- 页面是独立 HTML 文档（不套 `BaseLayout`），`<style is:global>`——canvas 由 JS 创建，
+  作用域样式选不中它
+- pdf.js 加载/渲染失败时**自动退回浏览器内置阅读器**（`<object>`），无 JS 环境走 `<noscript>` 里的同一兜底
+- 代价：canvas 里的文字不可选中、不可复制（要文本请下载 PDF 原件，那才是唯一内容源）
+- 换新 PDF 时注意字体是否内嵌：本页未配 `cMapUrl`，非内嵌 CJK 字体可能显示异常；
+  现有 `resume.pdf` 的 7 个字体全部内嵌，无此问题
 
 ## 二、闸门对这些文件的态度（豁免 = 仍然告警）
 
@@ -23,8 +34,8 @@
 命中禁出词只打印 `WARN`，不拦构建。这样"哪些内部标识被公开了"始终可见，
 但不会因为简历里有手机号或产品名就卡住上线。当前告警项（本人已确认可公开）：
 
-- 简历页：`QAClient`、`Hunter2`、`Redmine`
-- 简历 PDF：同上 + 手机号
+- 简历页：当前无命中（页面只剩 PDF 容器，履历文本全部来自 PDF）
+- 简历 PDF：`QAClient`、`Hunter2`、`Redmine`、手机号
 
 逐条判断标准：
 
@@ -38,7 +49,7 @@
 
 ## 三、口径一致性（避免面试官同时看简历与站点撞见两个数字）
 
-简历页里的精确值（19 个 Agent、30+ 工具、150+ Spec Change、170+ 用例、80% 覆盖率、
+简历 PDF 里的精确值（19 个 Agent、30+ 工具、150+ Spec Change、170+ 用例、80% 覆盖率、
 2 pd、30min+、80 人日等）已逐条登记在 `GLOSSARY.md` 第三节，
 与站点展示用的弹性区间（十余个 / 数十个 / 百余条 / 上百条）**同基线、不冲突**。
 

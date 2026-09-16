@@ -24,6 +24,7 @@ const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css',
   '.js': 'text/javascript',
+  '.mjs': 'text/javascript', // pdf.js 的 worker 是 .mjs：MIME 不对会被浏览器拒绝加载
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.pdf': 'application/pdf',
