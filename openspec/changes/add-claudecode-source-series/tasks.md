@@ -52,4 +52,5 @@
 - [x] 7.2 `npm run check` 无死链（37 个页面，含章节互链与 `/posts` 页码）
 - [x] 7.3 390px 视口核对 `/claudecode`、`/claudecode/<slug>`、`/posts` 三处（另抽 12 章等长文核对；`mobile-check` 的溢出判定已修，不再把代码块/表格的内部滚动当页面溢出）
 - [x] 7.4 抽查 3 篇章节（12 / 13 / 08）：内网标识无残留、互链可达、元数据（序号/分区/时长/星级）正确；全文人工通读仍建议作者本人做一次（见 `RELEASE-CHECKLIST.md` 第六节）
-- [ ] 7.5 push 触发 CI 部署，线上抽查首页、专区页、一个章节页
+- [x] 7.5 push 触发 CI 部署，线上抽查首页、专区页、一个章节页
+  - CI #8（专栏上线）与 #9（链接前缀修复）均 success；线上核对 `/individual_blog/claudecode/`（23 章、六分区、时长星级齐全）与 `/individual_blog/claudecode/00-reading-guide/`（正文、元数据行、上/下篇导航）
