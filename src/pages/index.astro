@@ -1,0 +1,192 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../site.config';
+import { withBase } from '../utils/base';
+import { listProjects, listPosts } from '../utils/content';
+
+const projects = await listProjects();
+const posts = await listPosts();
+const featured = projects.filter((p) => p.data.featured);
+const rest = projects.filter((p) => !p.data.featured);
+---
+
+<BaseLayout>
+  <section class="hero shell">
+    <h1>{SITE.name}</h1>
+    <p class="hero__tagline">{SITE.tagline}</p>
+  </section>
+
+  <section class="section shell">
+    <h2>精选项目</h2>
+    {
+      featured.length > 0 ? (
+        <ul class="cards">
+          {featured.map((project) => (
+            <li class="card">
+              <a href={withBase(`/projects/${project.id}`)}>
+                <h3>{project.data.title}</h3>
+                <p class="card__tagline">{project.data.tagline}</p>
+                <p class="card__summary">{project.data.summary}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="empty">暂无精选项目。</p>
+      )
+    }
+  </section>
+
+  {
+    rest.length > 0 && (
+      <section class="section shell">
+        <h2>其他项目</h2>
+        <ul class="plain">
+          {rest.map((project) => (
+            <li>
+              <a href={withBase(`/projects/${project.id}`)}>{project.data.title}</a>
+              <span class="plain__desc">{project.data.tagline}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="section shell">
+    <h2>文章</h2>
+    {
+      posts.length > 0 ? (
+        <ul class="plain">
+          {posts.map((post) => (
+            <li>
+              <a href={withBase(`/posts/${post.id}`)}>{post.data.title}</a>
+              <span class="plain__desc">{post.data.summary}</span>
+              <time class="plain__date" datetime={post.data.publishedAt.toISOString().slice(0, 10)}>
+                {post.data.publishedAt.toISOString().slice(0, 10)}
+              </time>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="empty">暂无文章。</p>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .shell {
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+  }
+
+  .hero {
+    padding-block: var(--space-5) var(--space-4);
+  }
+
+  .hero h1 {
+    margin: 0;
+    font-size: clamp(28px, 3.4vw + 14px, 44px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .hero__tagline {
+    margin: var(--space-3) 0 0;
+    max-width: var(--measure);
+    font-size: var(--text-base);
+    color: var(--color-text-muted);
+  }
+
+  .section {
+    padding-block: var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .section h2 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-sm);
+    text-transform: none;
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+
+  .cards {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow);
+  }
+
+  .card a {
+    display: block;
+    padding: var(--space-4);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .card h3 {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--color-accent);
+  }
+
+  .card__tagline {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .card__summary {
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  .plain {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .plain li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    align-items: baseline;
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .plain__desc {
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  .plain__date {
+    margin-left: auto;
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  .empty {
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+</style>

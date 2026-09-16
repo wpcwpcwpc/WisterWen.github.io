@@ -1,0 +1,84 @@
+---
+import { existsSync } from 'node:fs';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Prose from '../components/Prose.astro';
+import Mermaid from '../components/Mermaid.astro';
+import { withBase } from '../utils/base';
+import { projectPath } from '../utils/paths.mjs';
+import { SITE } from '../site.config';
+
+// 对外脱敏版简历（public/resume/resume.pdf）。存在才出下载入口，
+// 否则降级为"邮件索取"——简历没到位时站点依然可用，且不出现死链。
+const hasResume = existsSync(projectPath('public', 'resume', 'resume.pdf'));
+---
+
+<BaseLayout title="关于" description={`关于 ${SITE.author}`}>
+  <div class="head shell">
+    <h1>关于</h1>
+    <p class="head__tagline">{SITE.tagline}</p>
+  </div>
+
+  <Prose>
+    <p>
+      我是{SITE.author}，做游戏 QA 方向的工程研发：多 Agent 编排、Agent 工具的工程化封装、
+      评测体系与全链路可观测。这里写两样东西——项目页讲做法与取舍，文章讲踩过的坑与判断依据。
+    </p>
+
+    <h2>这个站点</h2>
+    <ul>
+      <li>静态站点，内容以 Markdown 存于版本库，无后端、无追踪</li>
+      <li>项目页记录实践与取舍，文章记录过程与教训</li>
+      <li>图表一图一源，站内各处与 PDF 共用同一份</li>
+    </ul>
+  </Prose>
+
+  <Mermaid name="flow-site-pipeline" caption="内容从写下来到发布，要过几步" wide />
+
+  <Prose>
+    <h2 id="resume">简历</h2>
+    {
+      hasResume ? (
+        <ul>
+          <li>
+            <a href={withBase('/resume/resume.pdf')} download>
+              下载简历（PDF）
+            </a>
+          </li>
+          <li>对外版已去除手机号等隐私字段；联系方式以上一节邮箱为准</li>
+        </ul>
+      ) : (
+        <ul>
+          <li>
+            完整简历可邮件索取：<a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+          </li>
+          <li>站点内容本身也可作为简历：项目页与文章记录了做法与取舍</li>
+        </ul>
+      )
+    }
+
+    <h2>联系</h2>
+    <ul>
+      <li>邮箱：<a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+      <li>代码托管：<a href={SITE.github} rel="me noopener">{SITE.github}</a></li>
+    </ul>
+  </Prose>
+</BaseLayout>
+
+<style>
+  .head {
+    max-width: var(--measure);
+    margin-inline: auto;
+    margin-bottom: var(--space-5);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .head__tagline {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+</style>

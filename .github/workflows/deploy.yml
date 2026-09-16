@@ -1,0 +1,67 @@
+name: 部署到 GitHub Pages
+
+# 站点前缀自动推导：<用户>.github.io 仓库用根路径，其它仓库用 /<仓库名>/
+# （站点本身支持两种托管，源码里不写死任何域名）
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: 推导 BASE_PATH 与 SITE_URL
+        run: |
+          if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
+            echo "BASE_PATH=/" >> "$GITHUB_ENV"
+            echo "SITE_URL=https://${{ github.repository_owner }}.github.io" >> "$GITHUB_ENV"
+          else
+            echo "BASE_PATH=/${{ github.event.repository.name }}/" >> "$GITHUB_ENV"
+            echo "SITE_URL=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}" >> "$GITHUB_ENV"
+          fi
+
+      - run: npm ci --no-audit --no-fund
+
+      # 构建链自带四道闸门：脱敏扫描 → 口径校验 → PDF 审计 → 图表/deck/OG → astro build
+      # 任一闸门命中即失败，漏网内容无法上线
+      - run: npm run build
+
+      - run: npm run check
+
+      # artifact 部署本不跑 Jekyll，这一步是防止将来切到"分支部署"时 _astro/ 被忽略
+      - run: touch dist/.nojekyll
+
+      # 说明：PDF 由本机 Chromium 生成，CI 上缺浏览器会跳过（脚本自己降级、不报错）；
+      # 仓库里已提交的 public/pdf/*.pdf 会随 dist 一起发布，入口不会缺。
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

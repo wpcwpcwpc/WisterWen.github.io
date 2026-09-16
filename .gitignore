@@ -1,0 +1,28 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+.astro/
+src/assets/diagrams/
+public/og/default.png
+
+# 临时产物（核对截图、CDP profile 等，约定以下划线开头）
+_cdp-profile/
+_*.png
+
+# 环境与凭据
+.env
+.env.*
+!.env.example
+
+# 编辑器与系统
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# 日志
+*.log
+npm-debug.log*
