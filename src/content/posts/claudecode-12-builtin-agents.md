@@ -1,7 +1,7 @@
 ---
 title: "内置Agent深度解析"
 summary: "6个内置Agent，每个都是专门优化的角色专家，通过精心设计的System Prompt和工具配置实现高效专业化。"
-publishedAt: 2026-09-03
+publishedAt: 2026-05-14
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 12

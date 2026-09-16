@@ -1,7 +1,7 @@
 ---
 title: "核心工具实现"
 summary: "第6篇建立了工具系统的架构基础（Tool 接口、权限模型、并发控制）。本篇深入分析五个最重要的核心工具实现："
-publishedAt: 2026-09-03
+publishedAt: 2026-04-12
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 7

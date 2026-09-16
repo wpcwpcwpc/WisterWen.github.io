@@ -1,7 +1,7 @@
 ---
 title: "可观测性：错误处理、日志与调试"
 summary: "可观测性是 Agent 的\"神经系统\"——错误处理是痛觉反射，日志是感知记录，调试是问题诊断。"
-publishedAt: 2026-09-03
+publishedAt: 2026-05-30
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 15

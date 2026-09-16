@@ -1,7 +1,7 @@
 ---
 title: "模型上下文协议 (MCP) 深度集成"
 summary: "想象 Claude Code 是一个新员工："
-publishedAt: 2026-09-03
+publishedAt: 2026-04-16
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 8

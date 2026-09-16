@@ -1,7 +1,7 @@
 ---
 title: "消息系统设计"
 summary: "消息系统是 Agent 的神经系统，所有信息都通过统一的\"消息\"格式在组件间流动，就像快递分拣中心处理包裹。"
-publishedAt: 2026-09-03
+publishedAt: 2026-03-27
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 4

@@ -1,7 +1,7 @@
 ---
 title: "项目全景与架构总览"
 summary: "Claude Code 是 Anthropic 开发的 AI 编程助手，运行在终端中，通过 Claude AI 理解代码库、编辑文件、执行命令、处理完整开发工作流。"
-publishedAt: 2026-09-03
+publishedAt: 2026-03-06
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 1

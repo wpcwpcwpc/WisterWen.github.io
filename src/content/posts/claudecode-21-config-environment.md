@@ -1,7 +1,7 @@
 ---
 title: "配置与环境管理"
 summary: "│                     CONFIGURATION PRIORITY STACK                         │"
-publishedAt: 2026-09-03
+publishedAt: 2026-07-04
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 21
