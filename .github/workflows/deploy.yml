@@ -27,9 +27,18 @@ jobs:
           node-version: 24
           cache: npm
 
+      # 前缀优先级：仓库变量（绑自定义域名时用）> 从仓库名推导
+      # 绑域名后 Pages 会把站点改到域名根路径，此时必须把 BASE_PATH 覆盖为 /
       - name: 推导 BASE_PATH 与 SITE_URL
+        env:
+          OVERRIDE_SITE_URL: ${{ vars.SITE_URL }}
+          OVERRIDE_BASE_PATH: ${{ vars.BASE_PATH }}
         run: |
-          if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
+          if [ -n "$OVERRIDE_SITE_URL" ] && [ -n "$OVERRIDE_BASE_PATH" ]; then
+            echo "BASE_PATH=$OVERRIDE_BASE_PATH" >> "$GITHUB_ENV"
+            echo "SITE_URL=$OVERRIDE_SITE_URL" >> "$GITHUB_ENV"
+            echo "用仓库变量覆盖：SITE_URL=$OVERRIDE_SITE_URL BASE_PATH=$OVERRIDE_BASE_PATH"
+          elif [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
             echo "BASE_PATH=/" >> "$GITHUB_ENV"
             echo "SITE_URL=https://${{ github.repository_owner }}.github.io" >> "$GITHUB_ENV"
           else

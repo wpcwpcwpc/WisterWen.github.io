@@ -137,6 +137,19 @@ npm run deploy
   项目页要按它们是否存在来决定是否出入口，因此必须在它们生成后再构建一次
   （第一次构建 → 产出 PDF → 第二次构建带上入口 → 检查 → 部署）
 
+## GitHub Pages 部署
+
+推送到 `main` 即自动构建并发布（`.github/workflows/deploy.yml`）。
+
+- 站点前缀自动推导：仓库名为 `<用户>.github.io` 时用根路径，其它仓库用 `/<仓库名>/`
+- **绑定自定义域名后必须覆盖前缀**：Pages 会把站点改到域名根路径，
+  在 `Settings → Secrets and variables → Actions → Variables` 加两个变量即可：
+  - `SITE_URL` = `https://你的域名`
+  - `BASE_PATH` = `/`
+- 四道闸门在 CI 上逐步执行，任何一道不过就不发布
+- CI 上缺中文字体：PDF 与 OG 会**自动跳过**（仓库里已提交的产物兜底发布），
+  不会因为环境缺字体卡住上线；改文案后在本机跑 `npm run pdf` / `npm run og` 更新产物并提交
+
 ## 视觉规范（勿绕过）
 
 - 正文 ≥ 20px（目标 24px）、次级文字 ≥ 16px、行高 1.6~1.8、正文列宽 ≤ 72ch
