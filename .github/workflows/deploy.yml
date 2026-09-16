@@ -48,9 +48,24 @@ jobs:
 
       - run: npm ci --no-audit --no-fund
 
+      # 词表不在仓库里（公开仓库不登记内部标识），只能来自 secret。
+      # 配置问题在这里点名：Annotations 面板能直接看到，不必去翻日志正文。
+      - name: 词表配置自检
+        env:
+          GLOSSARY_WORDS: ${{ secrets.GLOSSARY_WORDS }}
+        run: |
+          if [ -z "$GLOSSARY_WORDS" ]; then
+            echo "::error::未取到词表：仓库 secret GLOSSARY_WORDS 未配置（Settings → Secrets and variables → Actions → New repository secret）"
+            exit 1
+          fi
+          if ! printf '%s' "$GLOSSARY_WORDS" | grep -q '^## 二、禁出词表'; then
+            echo "::error::GLOSSARY_WORDS 缺少「## 二、禁出词表」锚点，解析会得到空词表（需整份粘贴 GLOSSARY.local.md）"
+            exit 1
+          fi
+          echo "词表已注入：$(printf '%s' "$GLOSSARY_WORDS" | wc -c) 字节，锚点可解析"
+
       # 四道闸门拆成独立步骤：失败时一眼看出是哪一道拦的（本地等价于 npm run build）
-      # 禁出词表不入公开仓库：两个读词表的闸门由仓库 secret GLOSSARY_WORDS 注入全文。
-      # 未配置该 secret 时闸门直接失败——不允许"取不到词表就当没命中"。
+      # 词表缺失视为闸门失效：不允许"取不到词表就当没命中"。
       - name: 脱敏扫描
         env:
           GLOSSARY_WORDS: ${{ secrets.GLOSSARY_WORDS }}
