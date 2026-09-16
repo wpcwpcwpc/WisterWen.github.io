@@ -5,7 +5,7 @@ node_modules/
 dist/
 .astro/
 src/assets/diagrams/
-public/og/default.png
+# 注：public/og/default.png 刻意入库——CI 缺中文字体时它作为兜底分享图照常发布
 
 # 临时产物（核对截图、CDP profile 等，约定以下划线开头）
 _cdp-profile/
