@@ -17,8 +17,17 @@ import path from 'node:path';
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicDir = path.join(root, 'public');
-const glossaryPath = path.join(root, 'GLOSSARY.md');
 const dump = process.argv.includes('--dump');
+
+/**
+ * 词表存放处 —— 与 sanitize-check.mjs 同源同规则。
+ * 公开仓库 MUST NOT 登记内部标识，词表因此不在仓库里：CI 由 secret 注入，本地读 gitignored 文件。
+ */
+const wordsPath = path.join(root, 'GLOSSARY.local.md');
+
+/** 公开仓库的 CI 日志同样公开：默认打码，本地要看全文设 SANITIZE_REVEAL=1 */
+const REVEAL = process.env.SANITIZE_REVEAL === '1';
+const maskToken = (token) => (REVEAL ? token : `${token.slice(0, 2)}***（${token.length} 字符）`);
 
 /** PII 模式：不在禁出词表里（词表登记的是内部标识），但公开 PDF MUST NOT 出现 */
 const PII_PATTERNS = [
@@ -29,7 +38,7 @@ const PII_PATTERNS = [
 ];
 
 /**
- * 解析 GLOSSARY.md 的禁出词（与 scripts/sanitize-check.mjs 同源同规则；
+ * 解析词表的禁出词（与 scripts/sanitize-check.mjs 同源同规则；
  * 刻意各留一份，避免为了复用去改动已验证过的闸门实现）。
  */
 function parseGlossary(text) {
@@ -67,9 +76,14 @@ async function collectPdfs(dir) {
   return found;
 }
 
-const glossary = await readFile(glossaryPath, 'utf8').catch(() => null);
+const inlineWords = process.env.GLOSSARY_WORDS?.trim();
+const glossary = inlineWords || (await readFile(wordsPath, 'utf8').catch(() => null));
 if (!glossary) {
-  console.error('[pdf] FAIL GLOSSARY.md 不存在 —— 词表缺失视为闸门失效，构建中止');
+  console.error(
+    '[pdf] FAIL 取不到禁出词表 —— 闸门失效，构建中止\n' +
+      `  本地：把词表写到 ${path.relative(root, wordsPath)}（不入库）\n` +
+      '  CI：在仓库 secret 里配置 GLOSSARY_WORDS（值为词表全文）',
+  );
   process.exit(1);
 }
 
@@ -120,7 +134,7 @@ for (const file of pdfs) {
 
     for (const word of exact) {
       if (text.toLowerCase().includes(word.toLowerCase())) {
-        hits.push(`第 ${page} 页  命中禁出词「${word}」`);
+        hits.push(`第 ${page} 页  命中禁出词「${maskToken(word)}」`);
       }
     }
     for (const { pattern, name } of [
@@ -128,7 +142,7 @@ for (const file of pdfs) {
       ...PII_PATTERNS,
     ]) {
       for (const match of text.matchAll(new RegExp(pattern, 'g'))) {
-        hits.push(`第 ${page} 页  命中${name}「${match[0]}」`);
+        hits.push(`第 ${page} 页  命中${name}「${maskToken(match[0])}」`);
       }
     }
   }
@@ -146,7 +160,7 @@ for (const file of pdfs) {
 }
 
 const exemptCount = pdfs.filter((file) => isExempt(path.relative(root, file))).length;
-console.log(`[pdf] 审计 ${pdfs.length} 个 PDF · ${pageCount} 页 · 禁出词 ${exact.length} 条 · 模式 ${patterns.length + PII_PATTERNS.length} 条 · 豁免 ${exemptCount} 个`);
+console.log(`[pdf] 审计 ${pdfs.length} 个 PDF · ${pageCount} 页 · 禁出词 ${exact.length} 条 · 模式 ${patterns.length + PII_PATTERNS.length} 条 · 豁免 ${exemptCount} 个 · 词表来源=${inlineWords ? 'CI secret' : '本地文件'}`);
 
 if (warnings.length > 0) {
   console.warn(`\n[pdf] WARN 已豁免文档命中敏感内容（不拦构建，但请确认这些都是可公开信息）：\n\n${warnings.join('\n\n')}\n`);
@@ -154,7 +168,8 @@ if (warnings.length > 0) {
 
 if (report.length > 0) {
   console.error(`\n[pdf] FAIL 待发布 PDF 命中敏感内容，构建中止：\n\n${report.join('\n\n')}\n`);
-  console.error('  处理方式：出对外脱敏版（删 PII、按 GLOSSARY 第一节泛化），或先不要放进 public/。');
+  console.error('  处理方式：出对外脱敏版（删 PII、按词表第一节泛化），或先不要放进 public/。');
+  console.error('  查看命中原文：本地设 SANITIZE_REVEAL=1 重跑。');
   process.exit(1);
 }
 

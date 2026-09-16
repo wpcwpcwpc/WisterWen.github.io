@@ -1,26 +1,45 @@
 /**
  * 脱敏扫描 —— 构建前置硬闸门。
  *
- * 读取 GLOSSARY.md 的「禁出词表」节（2.1 精确词 / 2.2 正则模式），扫描站点的
- * 内容与样式来源目录；命中即打印词与位置并以非零码退出，使构建失败——
- * 漏网内容物理上无法被发布。
+ * 读取禁出词表（CI：secret GLOSSARY_WORDS；本地：gitignored 的 GLOSSARY.local.md）
+ * 的「2.1 精确词 / 2.2 正则模式」，扫描站点的内容与样式来源目录；命中即打印位置并以
+ * 非零码退出，使构建失败——漏网内容物理上无法被发布。
  *
  * 词表缺失或为空视为闸门失效，同样失败（不允许"扫描器空转"通过）。
+ * 命中词默认打码：公开仓库的 CI 日志同样公开，不能把要藏的词写进日志。
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const glossaryPath = path.join(root, 'GLOSSARY.md');
 
-/** 扫描目标：内容、页面与组件的源码、图表源。GLOSSARY 与被扫描目录之外的文件不参与。 */
+/**
+ * 词表存放处 —— 公开仓库 MUST NOT 登记内部标识，词表因此不在仓库里：
+ * CI 由 secret 注入全文，本地读已 gitignore 的 `GLOSSARY.local.md`。
+ */
+const wordsPath = path.join(root, 'GLOSSARY.local.md');
+
+/** 公开仓库的 CI 日志同样公开：默认打码，本地要看全文设 SANITIZE_REVEAL=1 */
+const REVEAL = process.env.SANITIZE_REVEAL === '1';
+const maskToken = (token) => (REVEAL ? token : `${token.slice(0, 2)}***（${token.length} 字符）`);
+
+/**
+ * 扫描目标：内容、页面与组件的源码、图表源，以及仓库里的说明文档。
+ * 规则文档同样公开 —— 早期禁出词表就是写在 `GLOSSARY.md` 与 `openspec/` 里漏出去的，
+ * 所以这几处必须在范围内（根目录只扫一层，避免递归进 node_modules）。
+ */
 const scanRoots = [
   { dir: path.join(root, 'src'), extensions: ['.astro', '.ts', '.md', '.mdx', '.json'] },
   { dir: path.join(root, 'diagrams'), extensions: ['.mmd'] },
   // deck 的内容与样式直接进公开产物，必须与站点内容同一套闸门
   { dir: path.join(root, 'deck'), extensions: ['.mjs', '.js', '.css', '.md'] },
+  { dir: root, extensions: ['.md'], deep: false },
+  { dir: path.join(root, 'openspec'), extensions: ['.md', '.yaml', '.yml'] },
 ];
+
+/** 硬跳过：词表自身命中词表，构建会永远失败 */
+const IGNORE = ['GLOSSARY.local.md'];
 
 /**
  * 豁免清单 —— 经作者确认需要按原文公开的对外文档。
@@ -67,10 +86,10 @@ function parseGlossary(text) {
 /** 递归收集扫描目标文件 */
 async function collectFiles() {
   const files = [];
-  for (const { dir, extensions } of scanRoots) {
+  for (const { dir, extensions, deep = true } of scanRoots) {
     let entries = [];
     try {
-      entries = await readdir(dir, { recursive: true, withFileTypes: true });
+      entries = await readdir(dir, { recursive: deep, withFileTypes: true });
     } catch (error) {
       if (error.code === 'ENOENT') continue; // 目录尚未创建，跳过
       throw error;
@@ -78,6 +97,8 @@ async function collectFiles() {
     for (const entry of entries) {
       if (!entry.isFile()) continue;
       const full = path.join(entry.parentPath ?? entry.path, entry.name);
+      const rel = path.relative(root, full).replace(/\\/g, '/');
+      if (IGNORE.includes(rel)) continue;
       if (extensions.includes(path.extname(entry.name).toLowerCase())) files.push(full);
     }
   }
@@ -112,23 +133,28 @@ function lineOf(text, index) {
   return text.slice(0, index).split('\n').length;
 }
 
-let glossary;
-try {
-  glossary = await readFile(glossaryPath, 'utf8');
-} catch {
-  console.error('[sanitize] FAIL GLOSSARY.md 不存在 —— 词表缺失视为闸门失效，构建中止');
+const inlineWords = process.env.GLOSSARY_WORDS?.trim();
+const glossary = inlineWords || (await readFile(wordsPath, 'utf8').catch(() => null));
+
+if (!glossary) {
+  console.error(
+    '[sanitize] FAIL 取不到禁出词表 —— 闸门失效，构建中止\n' +
+      `  本地：把词表写到 ${path.relative(root, wordsPath)}（不入库）\n` +
+      '  CI：在仓库 secret 里配置 GLOSSARY_WORDS（值为词表全文）\n' +
+      '  词表形态见 GLOSSARY.md 第一节',
+  );
   process.exit(1);
 }
 
 const { exact, patterns } = parseGlossary(glossary);
 
 if (exact.length === 0) {
-  console.error('[sanitize] FAIL GLOSSARY.md 的「2.1 精确词」为空 —— 闸门失效，构建中止');
+  console.error('[sanitize] FAIL 词表的「2.1 精确词」为空 —— 闸门失效，构建中止');
   process.exit(1);
 }
 
 if (patterns.length === 0) {
-  console.error('[sanitize] FAIL GLOSSARY.md 的「2.2 正则模式」为空 —— 闸门失效，构建中止');
+  console.error('[sanitize] FAIL 词表的「2.2 正则模式」为空 —— 闸门失效，构建中止');
   process.exit(1);
 }
 
@@ -144,7 +170,7 @@ for (const file of files) {
 
   const lines = hits
     .sort((a, b) => a.index - b.index)
-    .map((hit) => `    第 ${lineOf(text, hit.index)} 行  命中「${hit.token}」`);
+    .map((hit) => `    第 ${lineOf(text, hit.index)} 行  命中「${maskToken(hit.token)}」`);
 
   const exempt = exemptionFor(file);
   const body = `  ${path.relative(root, file)}${exempt ? `（已豁免：${exempt.reason}）` : ''}\n${lines.join('\n')}`;
@@ -158,7 +184,7 @@ for (const file of files) {
 }
 
 console.log(
-  `[sanitize] 扫描 ${files.length} 个文件 · 精确词 ${exact.length} 条 · 正则 ${patterns.length} 条 · 豁免 ${exemptCount} 个`,
+  `[sanitize] 扫描 ${files.length} 个文件 · 精确词 ${exact.length} 条 · 正则 ${patterns.length} 条 · 豁免 ${exemptCount} 个 · 词表来源=${inlineWords ? 'CI secret' : '本地文件'}`,
 );
 
 if (warnings.length > 0) {
@@ -169,7 +195,8 @@ if (warnings.length > 0) {
 
 if (reports.length > 0) {
   console.error(`\n[sanitize] FAIL 命中禁出词，构建中止：\n\n${reports.join('\n\n')}\n`);
-  console.error('  处理方式：按 GLOSSARY.md 第一节替换为对外泛称，或区间化数字后重试。');
+  console.error('  处理方式：按词表第一节映射表替换为对外泛称，或区间化数字后重试。');
+  console.error('  查看命中原文：本地设 SANITIZE_REVEAL=1 重跑。');
   process.exit(1);
 }
 

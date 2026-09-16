@@ -125,8 +125,13 @@ frontmatter 另带 `series` / `seriesOrder` / `seriesGroup`（必须命中 `src/
 
 ## 脱敏与发布
 
-- `GLOSSARY.md`：泛化映射表 + 禁出词表 + 指标区间化登记（**口径单一来源**）
-- 构建前自动扫描 `src/**`、`diagrams/**`；命中禁出词即失败，漏网内容无法发布
+- `GLOSSARY.md`：脱敏边界 + 指标区间化登记（**口径单一来源**）。禁出词表与泛化映射表**不入库** ——
+  公开仓库登记内部标识，等于把泛化掉的内部名连同对照关系一并公开，泛化沦为摆设
+- 词表两处来源：本地 `GLOSSARY.local.md`（gitignored）与仓库 secret `GLOSSARY_WORDS`，内容须一致；
+  两处都取不到时闸门直接失败，不允许"取不到词表就当没命中"
+- 构建前自动扫描 `src/**`、`diagrams/**`、`deck/**`、根级 `*.md`、`openspec/**`；命中即失败，漏网内容无法发布
+  （规则文档与仓库文档同样公开 —— 早先词表就是从 `GLOSSARY.md` 与 `openspec/` 里漏出去的）
+- 命中词在日志里打码：CI 日志同样是公开的；本地要看全文设 `SANITIZE_REVEAL=1`
 - `npm run figures` 校验页面数字与登记表述逐字一致；两处不一致即失败，数字打架进不了线上
 - `npm run pdf-audit` 把 `public/` 下的 PDF 抽成文本再跑同一套词表（PDF 是文本闸门扫不到的盲区），
   并叠加 PII 模式（手机号 / 身份证 / 固话）

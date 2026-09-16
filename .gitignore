@@ -16,6 +16,10 @@ _*.png
 .env.*
 !.env.example
 
+# 禁出词表：公开仓库 MUST NOT 登记内部标识
+# 本地词表放这里，CI 侧由仓库 secret GLOSSARY_WORDS 提供，两处内容保持一致
+GLOSSARY.local.md
+
 # 编辑器与系统
 .DS_Store
 Thumbs.db

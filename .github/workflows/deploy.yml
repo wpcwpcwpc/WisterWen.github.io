@@ -49,13 +49,19 @@ jobs:
       - run: npm ci --no-audit --no-fund
 
       # 四道闸门拆成独立步骤：失败时一眼看出是哪一道拦的（本地等价于 npm run build）
+      # 禁出词表不入公开仓库：两个读词表的闸门由仓库 secret GLOSSARY_WORDS 注入全文。
+      # 未配置该 secret 时闸门直接失败——不允许"取不到词表就当没命中"。
       - name: 脱敏扫描
+        env:
+          GLOSSARY_WORDS: ${{ secrets.GLOSSARY_WORDS }}
         run: npm run sanitize
 
       - name: 口径校验
         run: npm run figures
 
       - name: PDF 审计
+        env:
+          GLOSSARY_WORDS: ${{ secrets.GLOSSARY_WORDS }}
         run: npm run pdf-audit
 
       - name: 图表生成
