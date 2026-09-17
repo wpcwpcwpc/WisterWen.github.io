@@ -1,7 +1,7 @@
 ---
 title: "代码风格与规范 (Code Style & Conventions)"
 summary: "Claude Code CLI 的代码风格体现了大型 TypeScript 项目的工程实践，采用 Biome + ESLint 双重 lint 配置，结合 25+ 自定义规则 保证代码质量。本文档总结源码中观察到的模式和"
-publishedAt: 2026-07-08
+publishedAt: 2026-09-21
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 23

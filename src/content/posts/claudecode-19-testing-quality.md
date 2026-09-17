@@ -1,7 +1,7 @@
 ---
 title: "测试架构与质量保证"
 summary: "Claude Code CLI 采用一套内置测试基础设施，而非依赖外部测试框架的标准测试文件结构。由于这是反混淆后的源码，测试文件（.test.ts）未包含在发布版本中，但我们可以从代码中的测试辅助函数和注释中深入了解其"
-publishedAt: 2026-06-20
+publishedAt: 2026-09-02
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 19

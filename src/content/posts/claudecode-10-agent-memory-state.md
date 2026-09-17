@@ -1,7 +1,7 @@
 ---
 title: "Agent记忆与状态管理"
 summary: "Agent的\"记忆\"有三层——短期（对话历史）、中期（会话摘要）、长期（CLAUDE.md + Auto Memory），通过智能压缩在有限的上下文窗口中保持最佳工作状态。"
-publishedAt: 2026-04-29
+publishedAt: 2026-07-08
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 10

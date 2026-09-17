@@ -1,7 +1,7 @@
 ---
 title: "Prompt 工程实践"
 summary: "想象你新入职一家公司，HR 给你一份\"员工手册\"："
-publishedAt: 2026-04-01
+publishedAt: 2026-06-07
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 5

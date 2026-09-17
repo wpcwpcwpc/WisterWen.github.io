@@ -1,7 +1,7 @@
 ---
 title: "Agent系统架构"
 summary: "Agent是带有专用配置的子QueryEngine实例，通过递归调用实现多层级智能协作。"
-publishedAt: 2026-04-25
+publishedAt: 2026-07-04
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 9

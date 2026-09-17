@@ -1,7 +1,7 @@
 ---
 title: "实战案例与扩展指南"
 summary: "基于 src/Tool.ts 的 buildTool 函数，一个完整工具需要实现："
-publishedAt: 2026-07-15
+publishedAt: 2026-09-30
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 24

@@ -1,7 +1,7 @@
 ---
 title: 让模型给人打分之前，先校准这把尺子
 summary: 用 LLM 当裁判最容易犯的错，是把"分数变了"当成"系统变了"。方差必须是一等指标，指标口径必须先统一。
-publishedAt: 2026-06-07
+publishedAt: 2026-07-04
 tags:
   - 评测
   - LLM as Judge

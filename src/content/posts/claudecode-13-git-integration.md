@@ -1,7 +1,7 @@
 ---
 title: "Git 集成与版本控制"
 summary: "Git 是现代软件开发的核心基础设施。Claude Code 对 Git 的集成远超简单的命令调用——它实现了一套零进程 Git 状态读取系统，直接解析 .git 目录内的文件来获取分支、HEAD、远程 URL 等信息，"
-publishedAt: 2026-05-23
+publishedAt: 2026-07-29
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 13

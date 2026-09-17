@@ -1,7 +1,7 @@
 ---
 title: "安全模型与沙箱机制"
 summary: "安全是 AI 代码助手最关键的设计考量。Claude Code 实现了多层防御架构："
-publishedAt: 2026-06-06
+publishedAt: 2026-08-12
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 16

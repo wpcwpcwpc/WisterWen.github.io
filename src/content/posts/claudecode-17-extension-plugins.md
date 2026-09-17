@@ -1,7 +1,7 @@
 ---
 title: "扩展系统与插件架构"
 summary: "Claude Code 的扩展系统采用三层架构设计："
-publishedAt: 2026-06-09
+publishedAt: 2026-08-22
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 17

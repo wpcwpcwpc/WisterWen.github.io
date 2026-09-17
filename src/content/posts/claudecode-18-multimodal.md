@@ -1,7 +1,7 @@
 ---
 title: "多模态支持"
 summary: "Claude Code 的多模态支持采用分层处理架构："
-publishedAt: 2026-06-15
+publishedAt: 2026-08-24
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 18

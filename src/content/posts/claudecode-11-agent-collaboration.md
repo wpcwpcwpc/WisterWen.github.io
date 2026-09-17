@@ -1,7 +1,7 @@
 ---
 title: "Agent协作与Coordinator模式"
 summary: "Coordinator不是组件，是主Agent的\"编排者模式\"，通过委托Worker实现复杂工程任务的并行协作。"
-publishedAt: 2026-05-07
+publishedAt: 2026-07-16
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 11

@@ -1,7 +1,7 @@
 ---
 title: "工具系统架构"
 summary: "工具系统是 Agent 的手脚，就像 USB 接口标准一样，定义了\"能做什么\"的扩展框架。"
-publishedAt: 2026-04-04
+publishedAt: 2026-06-12
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 6

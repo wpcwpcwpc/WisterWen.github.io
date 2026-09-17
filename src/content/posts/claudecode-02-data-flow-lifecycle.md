@@ -1,7 +1,7 @@
 ---
 title: "核心数据流与生命周期"
 summary: "这是 Agent 的心跳 —— 用户说话 → AI 思考 → 执行动作 → 循环往复，直到任务完成。"
-publishedAt: 2026-03-10
+publishedAt: 2026-05-16
 tags: ["Claude Code", "Agent", "源码解析"]
 series: claudecode
 seriesOrder: 2
